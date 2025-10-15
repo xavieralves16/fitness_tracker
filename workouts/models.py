@@ -4,12 +4,21 @@ from django.db import models
 
 class Profile(models.Model):
     """
-    Extension of the default Django User model to store powerlifting-related info.
+    Extension of the User model for powerlifting tracking.
+    Always stores data internally in metric (kg, cm).
     """
+    UNIT_CHOICES = [
+        ("metric", "Metric (kg, cm)"),
+        ("imperial", "Imperial (lbs, ft/in)"),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     age = models.IntegerField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)  # in cm
-    weight = models.FloatField(null=True, blank=True)  # in kg
+    height = models.FloatField(null=True, blank=True)  # stored in cm
+    weight = models.FloatField(null=True, blank=True)  # stored in kg
+    preferred_units = models.CharField(
+        max_length=10, choices=UNIT_CHOICES, default="metric"
+    )
     level = models.CharField(
         max_length=20,
         choices=[
@@ -23,11 +32,30 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+    # ----- Conversion Helpers -----
+    def weight_in_lbs(self):
+        """
+        Returns bodyweight in pounds.
+        """
+        if self.weight:
+            return round(self.weight * 2.20462, 2)
+        return None
+
+    def height_in_feet(self):
+        """
+        Returns height as (feet, inches).
+        """
+        if self.height:
+            total_inches = self.height / 2.54
+            feet = int(total_inches // 12)
+            inches = round(total_inches % 12)
+            return f"{feet}′{inches}″"
+        return None
+
     @property
     def bmi(self):
         """
-        Calculate BMI (Body Mass Index) = weight / height².
-        Returns None if data is missing.
+        BMI is always calculated using metric (kg/m²).
         """
         if self.height and self.weight:
             return round(self.weight / ((self.height / 100) ** 2), 2)
