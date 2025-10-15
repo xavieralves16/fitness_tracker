@@ -60,8 +60,8 @@ fitness_project/        # Main Django project folder
 ## Installation and Setup
 
 1. Clone this repository:  
-   git clone https://github.com/your-username/powerlifting-tracker.git  
-   cd powerlifting-tracker  
+   git clone https://github.com/xavieralves16/fitness_tracker.git)
+   cd fitness_tracker
 
 2. Create and activate a virtual environment:  
    python3 -m venv venv  
