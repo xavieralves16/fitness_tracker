@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import User
+from .models import User, Profile
 from django.db import IntegrityError
 from .forms import ProfileForm
 from django.contrib.auth.decorators import login_required
@@ -64,12 +64,14 @@ def register(request):
     
 @login_required
 def profile_view(request):
-    profile = request.user.profile
+    profile, created = Profile.objects.get_or_create(user=request.user)
+
     if request.method == "POST":
         form = ProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect("profile")  # reload page after save
+            return redirect("profile")
     else:
         form = ProfileForm(instance=profile)
+
     return render(request, "workouts/profile.html", {"form": form, "profile": profile})
