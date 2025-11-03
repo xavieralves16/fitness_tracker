@@ -52,7 +52,7 @@ def register(request):
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
-            return render(request, "network/register.html", {
+            return render(request, "workouts/register.html", {
                 "message": "Username already taken."
             })
         login(request, user)
