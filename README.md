@@ -45,7 +45,7 @@ fitness_project/        # Main Django project folder
 │   ├── views.py        # Views for workouts, dashboard, PRs  
 │   ├── urls.py         # App routes  
 │   ├── templates/      # HTML templates  
-│   ├── static/         # CSS/JS  
+│   ├── static/         # CSS/JS  :
 │  
 ├── fitness_project/    # Project configuration  
 │   ├── settings.py  

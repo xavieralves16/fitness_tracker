@@ -6,6 +6,9 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from .models import User
 from django.db import IntegrityError
 
+def index(request):
+    return HttpResponse("Index Page")
+
 def login_view(request):
     if request.method == "POST":
 
