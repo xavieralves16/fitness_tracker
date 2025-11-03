@@ -5,6 +5,8 @@ from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from .models import User
 from django.db import IntegrityError
+from .forms import ProfileForm
+from django.contrib.auth.decorators import login_required
 
 def index(request):
     return render(request, "workouts/index.html")
@@ -59,3 +61,15 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "workouts/register.html")
+    
+@login_required
+def profile_view(request):
+    profile = request.user.profile
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect("profile")  # reload page after save
+    else:
+        form = ProfileForm(instance=profile)
+    return render(request, "workouts/profile.html", {"form": form, "profile": profile})
