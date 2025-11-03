@@ -7,7 +7,7 @@ from .models import User
 from django.db import IntegrityError
 
 def index(request):
-    return HttpResponse("Index Page")
+    return render(request, "index.html")
 
 def login_view(request):
     if request.method == "POST":
