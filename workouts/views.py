@@ -7,7 +7,7 @@ from .models import User
 from django.db import IntegrityError
 
 def index(request):
-    return render(request, "index.html")
+    return render(request, "workouts/index.html")
 
 def login_view(request):
     if request.method == "POST":
@@ -22,11 +22,11 @@ def login_view(request):
             login(request, user)
             return HttpResponseRedirect(reverse("index"))
         else:
-            return render(request, "network/login.html", {
+            return render(request, "workouts/login.html", {
                 "message": "Invalid username and/or password."
             })
     else:
-        return render(request, "network/login.html")
+        return render(request, "workouts/login.html")
 
 
 def logout_view(request):
@@ -43,7 +43,7 @@ def register(request):
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
-            return render(request, "network/register.html", {
+            return render(request, "workouts/register.html", {
                 "message": "Passwords must match."
             })
 
@@ -58,4 +58,4 @@ def register(request):
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
     else:
-        return render(request, "network/register.html")
+        return render(request, "workouts/register.html")
