@@ -2,6 +2,12 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
+from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
 class Profile(models.Model):
     """
     Extension of the User model for powerlifting tracking.
@@ -12,6 +18,12 @@ class Profile(models.Model):
         ("imperial", "Imperial (lbs, ft/in)"),
     ]
 
+    LEVEL_CHOICES = [
+        ("beginner", "Beginner"),
+        ("intermediate", "Intermediate"),
+        ("advanced", "Advanced"),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     age = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)  # stored in cm
@@ -19,32 +31,20 @@ class Profile(models.Model):
     preferred_units = models.CharField(
         max_length=10, choices=UNIT_CHOICES, default="metric"
     )
-    level = models.CharField(
-        max_length=20,
-        choices=[
-            ("beginner", "Beginner"),
-            ("intermediate", "Intermediate"),
-            ("advanced", "Advanced"),
-        ],
-        default="beginner"
-    )
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="beginner")
 
     def __str__(self):
         return self.user.username
 
     # ----- Conversion Helpers -----
     def weight_in_lbs(self):
-        """
-        Returns bodyweight in pounds.
-        """
+        """Returns bodyweight in pounds."""
         if self.weight:
             return round(self.weight * 2.20462, 2)
         return None
 
     def height_in_feet(self):
-        """
-        Returns height as (feet, inches).
-        """
+        """Returns height as (feet, inches)."""
         if self.height:
             total_inches = self.height / 2.54
             feet = int(total_inches // 12)
@@ -54,9 +54,7 @@ class Profile(models.Model):
 
     @property
     def bmi(self):
-        """
-        BMI is always calculated using metric (kg/m²).
-        """
+        """BMI is always calculated using metric (kg/m²)."""
         if self.height and self.weight:
             return round(self.weight / ((self.height / 100) ** 2), 2)
         return None
@@ -140,3 +138,17 @@ class PersonalRecord(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.exercise.name}: {self.weight}kg"
+
+
+# ----- Signals -----
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Automatically create a profile when a new user is created."""
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """Ensure profile is saved whenever the user is saved."""
+    instance.profile.save()
