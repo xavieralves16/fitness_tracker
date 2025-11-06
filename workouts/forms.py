@@ -16,7 +16,7 @@ class ProfileForm(forms.ModelForm):
 class ExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
-        fields = ["name", "category", "description"]
+        fields = ["name", "category", "description", "image"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "category": forms.Select(attrs={"class": "form-control"}),
