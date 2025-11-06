@@ -1,20 +1,78 @@
 {% extends "workouts/layout.html" %}
+{% load static %}
 {% block title %}Profile | IronLog{% endblock %}
 
 {% block body %}
-<div class="container mt-5" style="max-width: 500px;">
-  <h2 class="mb-4 text-center">Profile Management</h2>
+<div class="container mt-5" style="max-width: 700px;">
+  <div class="card shadow-sm border-0">
+    <div class="card-body text-center p-5">
 
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-primary w-100 mt-3" type="submit">Save</button>
-  </form>
+      <!-- Profile Picture -->
+      {% if profile.profile_picture %}
+        <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle mb-3" width="150" height="150">
+      {% else %}
+        <img src="{% static 'workouts/images/default_profile.png' %}" alt="Profile Picture" class="rounded-circle mb-3" width="150" height="150">
+      {% endif %}
 
-  {% if profile.bmi %}
-    <div class="alert alert-info text-center mt-4">
-      <strong>BMI:</strong> {{ profile.bmi }}
+      <h3 class="mb-0">{{ user.username }}</h3>
+      <p class="text-muted mb-4">
+        Level: {{ profile.level|title }} <br>
+        Preferred Units: {{ profile.get_preferred_units_display }}
+      </p>
+
+      <div class="row justify-content-center text-center mb-3">
+        <div class="col-md-4">
+          <h6 class="text-muted">Age</h6>
+          <p>{{ profile.age|default:"—" }}</p>
+        </div>
+        <div class="col-md-4">
+          <h6 class="text-muted">Height</h6>
+          <p>
+            {% if profile.preferred_units == "imperial" %}
+              {{ profile.height_in_feet }}
+            {% else %}
+              {{ profile.height|default:"—" }} cm
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-4">
+          <h6 class="text-muted">Weight</h6>
+          <p>
+            {% if profile.preferred_units == "imperial" %}
+              {{ profile.weight_in_lbs }} lbs
+            {% else %}
+              {{ profile.weight|default:"—" }} kg
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      {% if profile.bmi %}
+      <div class="alert alert-info text-center mt-3">
+        <strong>BMI:</strong> {{ profile.bmi }}
+      </div>
+      {% endif %}
+
+      <!-- Edit Profile Button -->
+      <button class="btn btn-outline-primary mt-3" id="edit-btn">Edit Profile</button>
+
+      <!-- Hidden Edit Form -->
+      <div id="edit-form" class="mt-4" style="display: none;">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button class="btn btn-primary w-100 mt-3" type="submit">Save Changes</button>
+        </form>
+      </div>
     </div>
-  {% endif %}
+  </div>
 </div>
+
+<script>
+document.getElementById('edit-btn').addEventListener('click', function() {
+    const form = document.getElementById('edit-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+</script>
 {% endblock %}
+
