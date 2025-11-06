@@ -3,9 +3,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import User, Profile
+from .models import User, Profile, Exercise
 from django.db import IntegrityError
-from .forms import ProfileForm
+from .forms import ProfileForm, ExerciseForm
 from django.contrib.auth.decorators import login_required
 
 def index(request):
@@ -75,3 +75,38 @@ def profile_view(request):
         form = ProfileForm(instance=profile)
 
     return render(request, "workouts/profile.html", {"form": form, "profile": profile})
+
+
+@login_required
+def exercise_library(request):
+    """
+    Display all exercises (default + user's custom ones) and allow adding new ones.
+    """
+    # Show all global (non-custom) exercises + user's custom ones
+    exercises = Exercise.objects.filter(is_custom=False) | Exercise.objects.filter(user=request.user)
+
+    if request.method == "POST":
+        form = ExerciseForm(request.POST)
+        if form.is_valid():
+            exercise = form.save(commit=False)
+            exercise.user = request.user
+            exercise.is_custom = True
+            exercise.save()
+            return redirect("exercises")
+    else:
+        form = ExerciseForm()
+
+    return render(request, "workouts/exercises.html", {
+        "form": form,
+        "exercises": exercises,
+    })
+
+
+@login_required
+def delete_exercise(request, exercise_id):
+    """
+    Allow a user to delete their own custom exercises.
+    """
+    exercise = get_object_or_404(Exercise, id=exercise_id, user=request.user, is_custom=True)
+    exercise.delete()
+    return redirect("exercises")
