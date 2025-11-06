@@ -37,7 +37,7 @@
 
             <!-- Dynamic Image / GIF -->
             {% if ex.image %}
-                <img src="{% static ex.image %}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
+                <img src="{% static ex.image %}" class="card-img-top" alt="{{ ex.name }}" style="width:100%; height:auto;">
             {% else %}
                 <img src="{% static 'workouts/images/default_exercise.png' %}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
             {% endif %}
