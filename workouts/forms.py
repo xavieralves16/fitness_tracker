@@ -4,7 +4,7 @@ from .models import Profile
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ["age", "height", "weight", "preferred_units", "level"]
+        fields = ["profile_picture", "age", "height", "weight", "preferred_units", "level"]
         widgets = {
             "age": forms.NumberInput(attrs={"class": "form-control"}),
             "height": forms.NumberInput(attrs={"class": "form-control", "step": "0.1"}),
