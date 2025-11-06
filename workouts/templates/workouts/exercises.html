@@ -5,8 +5,15 @@
 <div class="container mt-5" style="max-width: 700px;">
   <h2 class="mb-4 text-center">Exercise Library</h2>
 
-  <!-- Add Exercise Form -->
-  <div class="card mb-4 shadow-sm">
+  <!-- Add New Exercise Button -->
+  <div class="text-center mb-4">
+    <button id="show-form-btn" class="btn btn-outline-primary">
+      ➕ Add New Exercise
+    </button>
+  </div>
+
+  <!-- Hidden Add Exercise Form -->
+  <div id="add-exercise-form" class="card mb-4 shadow-sm" style="display: none;">
     <div class="card-body">
       <h5 class="mb-3">Add Custom Exercise</h5>
       <form method="post">
@@ -41,4 +48,23 @@
     </div>
   </div>
 </div>
+
+<script>
+document.getElementById("show-form-btn").addEventListener("click", function() {
+  const form = document.getElementById("add-exercise-form");
+  const btn = document.getElementById("show-form-btn");
+
+  if (form.style.display === "none") {
+    form.style.display = "block";
+    btn.textContent = "✖ Cancel";
+    btn.classList.remove("btn-outline-primary");
+    btn.classList.add("btn-outline-danger");
+  } else {
+    form.style.display = "none";
+    btn.textContent = "➕ Add New Exercise";
+    btn.classList.remove("btn-outline-danger");
+    btn.classList.add("btn-outline-primary");
+  }
+});
+</script>
 {% endblock %}
