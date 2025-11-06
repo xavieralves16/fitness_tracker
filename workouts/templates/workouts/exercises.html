@@ -37,9 +37,9 @@
 
             <!-- Dynamic Image / GIF -->
             {% if ex.image %}
-              <img src="{{ ex.image.url }}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
+                <img src="{% static ex.image %}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
             {% else %}
-              <img src="{% static 'workouts/images/default_exercise.png' %}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
+                <img src="{% static 'workouts/images/default_exercise.png' %}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
             {% endif %}
 
             <div class="card-body text-center">
