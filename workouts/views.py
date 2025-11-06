@@ -86,7 +86,7 @@ def exercise_library(request):
     exercises = Exercise.objects.filter(is_custom=False) | Exercise.objects.filter(user=request.user)
 
     if request.method == "POST":
-        form = ExerciseForm(request.POST)
+        form = ExerciseForm(request.POST, request.FILES) 
         if form.is_valid():
             exercise = form.save(commit=False)
             exercise.user = request.user
