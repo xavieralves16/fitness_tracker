@@ -1,0 +1,44 @@
+{% extends "workouts/layout.html" %}
+{% block title %}Exercise Library | IronLog{% endblock %}
+
+{% block body %}
+<div class="container mt-5" style="max-width: 700px;">
+  <h2 class="mb-4 text-center">Exercise Library</h2>
+
+  <!-- Add Exercise Form -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h5 class="mb-3">Add Custom Exercise</h5>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary w-100 mt-2">Add Exercise</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Exercise List -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="mb-3">Your Exercises</h5>
+      <ul class="list-group">
+        {% for ex in exercises %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ ex.name }}</strong>
+              <small class="text-muted">({{ ex.category }})</small><br>
+              {% if ex.description %}<small>{{ ex.description }}</small>{% endif %}
+            </div>
+
+            {% if ex.is_custom and ex.user == user %}
+              <a href="{% url 'delete_exercise' ex.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+            {% endif %}
+          </li>
+        {% empty %}
+          <li class="list-group-item text-center text-muted">No exercises yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
