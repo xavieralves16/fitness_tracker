@@ -32,6 +32,7 @@ class Profile(models.Model):
         max_length=10, choices=UNIT_CHOICES, default="metric"
     )
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="beginner")
+    profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
 
     def __str__(self):
         return self.user.username
