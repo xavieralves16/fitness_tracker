@@ -1,8 +1,9 @@
 {% extends "workouts/layout.html" %}
+{% load static %}
 {% block title %}Exercise Library | IronLog{% endblock %}
 
 {% block body %}
-<div class="container mt-5" style="max-width: 700px;">
+<div class="container mt-5" style="max-width: 900px;">
   <h2 class="mb-4 text-center">Exercise Library</h2>
 
   <!-- Add New Exercise Button -->
@@ -16,7 +17,7 @@
   <div id="add-exercise-form" class="card mb-4 shadow-sm" style="display: none;">
     <div class="card-body">
       <h5 class="mb-3">Add Custom Exercise</h5>
-      <form method="post">
+      <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary w-100 mt-2">Add Exercise</button>
@@ -28,23 +29,40 @@
   <div class="card shadow-sm">
     <div class="card-body">
       <h5 class="mb-3">Your Exercises</h5>
-      <ul class="list-group">
+
+      <div class="row">
         {% for ex in exercises %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <strong>{{ ex.name }}</strong>
-              <small class="text-muted">({{ ex.category }})</small><br>
-              {% if ex.description %}<small>{{ ex.description }}</small>{% endif %}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 border-0 shadow-sm">
+            {% if ex.image %}
+              <img src="{{ ex.image.url }}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
+            {% else %}
+              <img src="{% static 'workouts/images/default_exercise.png' %}" class="card-img-top" alt="No image" style="height:180px; object-fit:cover;">
+            {% endif %}
+
+            <div class="card-body text-center">
+              <h5 class="card-title mb-1">{{ ex.name }}</h5>
+              <p class="text-muted mb-1" style="font-size: 0.9rem;">({{ ex.category|title }})</p>
+              {% if ex.description %}
+                <p class="card-text text-secondary" style="font-size: 0.9rem;">{{ ex.description }}</p>
+              {% endif %}
             </div>
 
             {% if ex.is_custom and ex.user == user %}
-              <a href="{% url 'delete_exercise' ex.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+            <div class="card-footer bg-transparent text-center">
+              <a href="{% url 'delete_exercise' ex.id %}" class="btn btn-sm btn-outline-danger w-75">
+                Delete
+              </a>
+            </div>
             {% endif %}
-          </li>
+          </div>
+        </div>
         {% empty %}
-          <li class="list-group-item text-center text-muted">No exercises yet.</li>
+          <div class="col-12 text-center text-muted">
+            No exercises yet.
+          </div>
         {% endfor %}
-      </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -68,3 +86,4 @@ document.getElementById("show-form-btn").addEventListener("click", function() {
 });
 </script>
 {% endblock %}
+
