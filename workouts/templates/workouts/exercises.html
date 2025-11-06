@@ -34,10 +34,12 @@
         {% for ex in exercises %}
         <div class="col-md-4 mb-4">
           <div class="card h-100 border-0 shadow-sm">
+
+            <!-- Dynamic Image / GIF -->
             {% if ex.image %}
               <img src="{{ ex.image.url }}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
             {% else %}
-              <img src="{% static 'workouts/images/default_exercise.png' %}" class="card-img-top" alt="No image" style="height:180px; object-fit:cover;">
+              <img src="{% static 'workouts/images/default_exercise.png' %}" class="card-img-top" alt="{{ ex.name }}" style="height:180px; object-fit:cover;">
             {% endif %}
 
             <div class="card-body text-center">
@@ -67,6 +69,7 @@
   </div>
 </div>
 
+<!-- Toggle Add Exercise Form -->
 <script>
 document.getElementById("show-form-btn").addEventListener("click", function() {
   const form = document.getElementById("add-exercise-form");
@@ -86,4 +89,3 @@ document.getElementById("show-form-btn").addEventListener("click", function() {
 });
 </script>
 {% endblock %}
-
