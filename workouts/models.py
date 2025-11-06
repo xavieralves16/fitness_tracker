@@ -62,9 +62,6 @@ class Profile(models.Model):
 
 
 class Exercise(models.Model):
-    """
-    Exercise library: includes main powerlifting lifts and accessories.
-    """
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=100)
     category = models.CharField(
@@ -77,7 +74,8 @@ class Exercise(models.Model):
         ]
     )
     description = models.TextField(blank=True, null=True)
-    is_custom = models.BooleanField(default=False)  # whether created by the user
+    image = models.ImageField(upload_to="exercise_gifs/", blank=True, null=True) 
+    is_custom = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
