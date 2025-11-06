@@ -65,6 +65,7 @@ class Exercise(models.Model):
     """
     Exercise library: includes main powerlifting lifts and accessories.
     """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=100)
     category = models.CharField(
         max_length=50,
