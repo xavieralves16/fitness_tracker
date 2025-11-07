@@ -1,0 +1,17 @@
+{% extends "workouts/layout.html" %}
+{% block title %}New Workout | IronLog{% endblock %}
+
+{% block body %}
+<div class="container mt-5" style="max-width: 600px;">
+  <h2 class="mb-4 text-center">Create New Workout</h2>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary w-100 mt-3" type="submit">Next: Add Exercises</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
