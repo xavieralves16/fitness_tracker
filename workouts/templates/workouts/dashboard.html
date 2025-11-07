@@ -1,9 +1,11 @@
 {% extends "workouts/layout.html" %}
-{% block title %}Dashboard | IronLog{% endblock %}
 {% load static %}
+{% block title %}Dashboard | IronLog{% endblock %}
 
 {% block body %}
 <div class="container mt-5" style="max-width: 900px;">
+
+  <!-- Título + filtros -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>📊 Training Volume</h2>
     <div>
@@ -16,57 +18,87 @@
     </div>
   </div>
 
-  <div class="card shadow-sm p-4">
+  <!-- Card do gráfico de volume ao longo do tempo -->
+  <div class="card shadow-sm p-4 mb-4">
+    <h5 class="text-center mb-3">Total Training Volume Over Time</h5>
     <canvas id="volumeChart" height="100"></canvas>
+    {% if not volumes %}
+      <p class="text-center text-muted mt-3 mb-0">No data yet. Log a workout 💪</p>
+    {% endif %}
   </div>
+
+  <!-- Card do gráfico por exercício -->
+  <div class="card shadow-sm p-4 mb-4">
+    <h5 class="text-center mb-3">Volume by Exercise</h5>
+    <canvas id="exerciseChart" height="120"></canvas>
+    {% if not exercise_labels %}
+      <p class="text-center text-muted mt-3 mb-0">No exercise volume yet.</p>
+    {% endif %}
+  </div>
+
 </div>
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Dados seguros via json_script -->
+{{ labels|json_script:"labels-data" }}
+{{ volumes|json_script:"volumes-data" }}
+{{ exercise_labels|json_script:"exercise-labels-data" }}
+{{ exercise_volumes|json_script:"exercise-volumes-data" }}
+
 <script>
-  const ctx = document.getElementById('volumeChart').getContext('2d');
-  const volumeChart = new Chart(ctx, {
-    type: 'line',
+  // dados do gráfico 1 (volume no tempo)
+  const labels = JSON.parse(document.getElementById("labels-data").textContent);
+  const volumes = JSON.parse(document.getElementById("volumes-data").textContent);
+
+  const ctx1 = document.getElementById("volumeChart").getContext("2d");
+  new Chart(ctx1, {
+    type: "line",
     data: {
-      labels: {{ labels|safe }},
+      labels: labels,
       datasets: [{
-        label: 'Training Volume (kg lifted)',
-        data: {{ volumes|safe }},
-        borderColor: 'rgba(54, 162, 235, 1)',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        label: "Training Volume (kg lifted)",
+        data: volumes,
+        borderColor: "rgba(54, 162, 235, 1)",
+        backgroundColor: "rgba(54, 162, 235, 0.2)",
         borderWidth: 2,
         fill: true,
         tension: 0.3,
         pointRadius: 5,
-        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
       }]
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { display: true },
-        title: {
-          display: true,
-          text: 'Total Training Volume Over Time',
-          font: { size: 18 }
-        }
-      },
       scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Volume (kg)'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Period'
-          }
-        }
+        y: { beginAtZero: true, title: { display: true, text: "kg" } }
+      }
+    }
+  });
+
+  // dados do gráfico 2 (volume por exercício)
+  const exLabels = JSON.parse(document.getElementById("exercise-labels-data").textContent);
+  const exVolumes = JSON.parse(document.getElementById("exercise-volumes-data").textContent);
+
+  const ctx2 = document.getElementById("exerciseChart").getContext("2d");
+  new Chart(ctx2, {
+    type: "bar",
+    data: {
+      labels: exLabels,
+      datasets: [{
+        label: "Volume (kg)",
+        data: exVolumes,
+        backgroundColor: "rgba(75, 192, 192, 0.4)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
       }
     }
   });
 </script>
 {% endblock %}
-

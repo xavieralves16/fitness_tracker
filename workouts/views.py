@@ -176,35 +176,52 @@ def personal_records(request):
 
 @login_required
 def dashboard(request):
-    """
-    Dashboard showing total training volume over time.
-    """
+    period = request.GET.get("period", "weekly")
 
-    period = request.GET.get("period", "weekly")  # 'weekly' or 'monthly'
+    # todos os sets válidos deste user
+    sets = WorkoutSet.objects.filter(
+        workout__user=request.user,
+        weight__isnull=False,
+        repetitions__isnull=False,
+    )
 
-    sets = WorkoutSet.objects.filter(workout__user=request.user)
+    # ----- volume por período (gráfico de cima) -----
+    if sets.exists():
+        if period == "monthly":
+            data = (
+                sets.annotate(period=TruncMonth("workout__date"))
+                .values("period")
+                .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
+                .order_by("period")
+            )
+        else:  # weekly
+            data = (
+                sets.annotate(period=TruncWeek("workout__date"))
+                .values("period")
+                .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
+                .order_by("period")
+            )
 
-    if period == "monthly":
-        data = (
-            sets.annotate(period=TruncMonth("workout__date"))
-            .values("period")
-            .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
-            .order_by("period")
-        )
+        labels = [d["period"].strftime("%b %d, %Y") for d in data if d["period"]]
+        volumes = [float(d["volume"] or 0) for d in data]
     else:
-        data = (
-            sets.annotate(period=TruncWeek("workout__date"))
-            .values("period")
-            .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
-            .order_by("period")
-        )
+        labels = []
+        volumes = []
 
-    labels = [d["period"].strftime("%b %d, %Y") for d in data]
-    volumes = [round(d["volume"] or 0, 1) for d in data]
+    # ----- volume por exercício (novo gráfico) -----
+    exercise_data = (
+        sets.values("exercise__name")
+        .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
+        .order_by("-volume")
+    )
 
-    context = {
+    exercise_labels = [row["exercise__name"] for row in exercise_data]
+    exercise_volumes = [float(row["volume"] or 0) for row in exercise_data]
+
+    return render(request, "workouts/dashboard.html", {
         "labels": labels,
         "volumes": volumes,
         "period": period,
-    }
-    return render(request, "workouts/dashboard.html", context)
+        "exercise_labels": exercise_labels,
+        "exercise_volumes": exercise_volumes,
+    })
