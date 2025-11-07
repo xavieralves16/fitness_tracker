@@ -1,10 +1,60 @@
 {% extends "workouts/layout.html" %}
-
-{% block title %}Home | IronLog{% endblock %}
+{% load static %}
+{% block title %}IronLog | Home{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1>Welcome to IronLog</h1>
-    <p>This is the base application</p>
-</div>
+
+<!-- Hero Section -->
+<section class="hero">
+  <h1>IronLog</h1>
+  <p>Train Hard • Track Smart • Stay Strong</p>
+  <div>
+    <a href="{% url 'register' %}" class="btn btn-iron btn-lg">Get Started</a>
+    <a href="{% url 'login' %}" class="btn btn-outline-iron btn-lg">Log In</a>
+  </div>
+</section>
+
+<!-- Divider -->
+<div class="divider"></div>
+
+<!-- Features Section -->
+<section class="features">
+  <div class="feature-card">
+    <i class="fas fa-dumbbell"></i>
+    <h4>Smart Dashboard</h4>
+    <p>See your total volume, track your PRs, and visualize progress like a lifter, not a spreadsheet.</p>
+  </div>
+
+  <div class="feature-card">
+    <i class="fas fa-medal"></i>
+    <h4>PR Tracking</h4>
+    <p>Every new record is automatically logged and saved — you lift, we record.</p>
+  </div>
+
+  <div class="feature-card">
+    <i class="fas fa-database"></i>
+    <h4>Data Export</h4>
+    <p>Your data is yours. Export all your workouts and PRs as clean CSV files anytime.</p>
+  </div>
+
+  <div class="feature-card">
+    <i class="fas fa-calculator"></i>
+    <h4>Wilks Score</h4>
+    <p>Compare your strength with lifters worldwide using the official IPF Wilks formula.</p>
+  </div>
+</section>
+
+<!-- App Preview -->
+<section class="app-preview">
+  <h3 style="font-family: 'Bebas Neue', sans-serif; text-transform: uppercase;">No Bullshit. Just Iron.</h3>
+</section>
+
+<footer>
+  <p>© 2025 IronLog — Built by lifters, for lifters. Respect the Iron.</p>
+</footer>
+
+<!-- Icons + Fonts -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+
 {% endblock %}

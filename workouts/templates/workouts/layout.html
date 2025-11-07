@@ -1,34 +1,41 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
+    {% load static %}
     <title>{% block title %}IronLog{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet"
-          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
           crossorigin="anonymous">
-</head>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+
+    <!-- IronLog Global CSS -->
+    <link rel="stylesheet" href="{% static 'workouts/css/style.css' %}">
+  </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<!-- IronLog Navbar -->
+<nav class="navbar navbar-expand-lg">
     <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
         <img src="{% static 'workouts/images/logo.png' %}" alt="IronLog Logo" height="35" class="d-inline-block align-top mr-2">
     </a>
 
-    <!-- collapsible button for mobile -->
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+    <!-- Mobile toggler -->
+    <button class="navbar-toggler text-white" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+        <span class="navbar-toggler-icon">☰</span>
     </button>
 
-    <!-- full navbar content -->
     <div class="collapse navbar-collapse" id="navbarNav">
-        <!-- Left-side menu -->
+        <!-- Left Side -->
         <ul class="navbar-nav mr-auto">
             {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'profile' %}"><strong>{{ user.username }}</strong></a>
+                    <a class="nav-link text-white" href="{% url 'profile' %}"><strong>{{ user.username }}</strong></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
@@ -45,7 +52,7 @@
             {% endif %}
         </ul>
 
-        <!-- Right-side menu -->
+        <!-- Right Side -->
         <ul class="navbar-nav ml-auto">
             {% if user.is_authenticated %}
                 <li class="nav-item">
@@ -59,17 +66,39 @@
                     <a class="nav-link" href="{% url 'register' %}">Register</a>
                 </li>
             {% endif %}
+            <!-- Theme toggle -->
+            <li class="nav-item ml-3">
+                <button class="btn btn-outline-iron btn-sm" onclick="toggleTheme()">☀️ / 🌙</button>
+            </li>
         </ul>
     </div>
 </nav>
 
+<!-- Main Body -->
 <div class="body">
     {% block body %}
     {% endblock %}
 </div>
 
+<footer class="text-center mt-5">
+    <p class="text-muted small">© 2025 IronLog — Built by lifters, for lifters.</p>
+</footer>
+
+<!-- JS -->
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Theme Toggle -->
+<script>
+  if (localStorage.getItem("ironTheme") === "light") {
+      document.body.classList.add("theme-light");
+  }
+  function toggleTheme() {
+      document.body.classList.toggle("theme-light");
+      const theme = document.body.classList.contains("theme-light") ? "light" : "dark";
+      localStorage.setItem("ironTheme", theme);
+  }
+</script>
 
 </body>
 </html>
