@@ -1,0 +1,39 @@
+{% extends "workouts/layout.html" %}
+{% block title %}Workout Details | IronLog{% endblock %}
+
+{% block body %}
+<div class="container mt-5" style="max-width: 800px;">
+  <h2 class="mb-4 text-center">Workout on {{ workout.date }}</h2>
+
+  {% if workout.notes %}
+    <p class="text-muted text-center mb-4">{{ workout.notes }}</p>
+  {% endif %}
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h5 class="mb-3">Add Exercise to Workout</h5>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary w-100 mt-2" type="submit">Add Set</button>
+      </form>
+    </div>
+  </div>
+
+  <h5>Logged Exercises:</h5>
+  {% if sets %}
+    <ul class="list-group mt-3">
+      {% for s in sets %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ s.exercise.name }}</strong><br>
+            {{ s.repetitions }} reps @ {{ s.weight }} kg
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted mt-3">No exercises added yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
