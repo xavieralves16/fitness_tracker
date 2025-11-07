@@ -3,15 +3,23 @@
 
 {% block body %}
 <div class="container mt-5" style="max-width: 800px;">
-  <h2 class="mb-4 text-center">Workout on {{ workout.date }}</h2>
+  <h2 class="mb-2 text-center">Workout on {{ workout.date }}</h2>
 
   {% if workout.notes %}
     <p class="text-muted text-center mb-4">{{ workout.notes }}</p>
   {% endif %}
 
-  <div class="card mb-4 shadow-sm">
+  <!-- Button to show/hide form -->
+  <div class="text-center mb-4">
+    <button id="show-form-btn" class="btn btn-outline-primary">
+      ➕ Add Exercise
+    </button>
+  </div>
+
+  <!-- Hidden Add Exercise Form -->
+  <div id="add-exercise-form" class="card mb-4 shadow-sm" style="display: none;">
     <div class="card-body">
-      <h5 class="mb-3">Add Exercise to Workout</h5>
+      <h5 class="mb-3 text-center">Add Exercise to Workout</h5>
       <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
@@ -20,7 +28,8 @@
     </div>
   </div>
 
-  <h5>Logged Exercises:</h5>
+  <!-- Logged Exercises -->
+  <h5 class="mb-3">Logged Exercises:</h5>
   {% if sets %}
     <ul class="list-group mt-3">
       {% for s in sets %}
@@ -29,6 +38,7 @@
             <strong>{{ s.exercise.name }}</strong><br>
             {{ s.repetitions }} reps @ {{ s.weight }} kg
           </div>
+          <span class="text-muted small">Volume: {{ s.volume|floatformat:1 }}</span>
         </li>
       {% endfor %}
     </ul>
@@ -36,4 +46,24 @@
     <p class="text-muted mt-3">No exercises added yet.</p>
   {% endif %}
 </div>
+
+<!-- JS to toggle the form -->
+<script>
+document.getElementById("show-form-btn").addEventListener("click", function() {
+  const form = document.getElementById("add-exercise-form");
+  const btn = document.getElementById("show-form-btn");
+
+  if (form.style.display === "none") {
+    form.style.display = "block";
+    btn.textContent = "✖ Cancel";
+    btn.classList.remove("btn-outline-primary");
+    btn.classList.add("btn-outline-danger");
+  } else {
+    form.style.display = "none";
+    btn.textContent = "➕ Add Exercise";
+    btn.classList.remove("btn-outline-danger");
+    btn.classList.add("btn-outline-primary");
+  }
+});
+</script>
 {% endblock %}
