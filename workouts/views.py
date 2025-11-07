@@ -142,6 +142,21 @@ def workout_detail(request, workout_id):
             workout_set = form.save(commit=False)
             workout_set.workout = workout
             workout_set.save()
+
+            # Check for PR
+            from .models import PersonalRecord
+            pr, created = PersonalRecord.objects.get_or_create(
+                user=request.user,
+                exercise=workout_set.exercise,
+                defaults={"weight": workout_set.weight}
+            )
+
+            # If existing PR and new weight is higher → update
+            if not created and workout_set.weight and workout_set.weight > pr.weight:
+                pr.weight = workout_set.weight
+                pr.date = workout.date
+                pr.save()
+
             return redirect("workout_detail", workout_id=workout.id)
     else:
         form = WorkoutSetForm()
