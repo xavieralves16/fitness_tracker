@@ -24,17 +24,10 @@ class ExerciseForm(forms.ModelForm):
         }
 
 class WorkoutForm(forms.ModelForm):
-    """
-    Formulário para criar ou editar um Workout (data + notas).
-    """
     class Meta:
         model = Workout
-        fields = ["date", "notes"]
+        fields = ["notes"]
         widgets = {
-            "date": forms.DateInput(attrs={
-                "class": "form-control",
-                "type": "date"
-            }),
             "notes": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
