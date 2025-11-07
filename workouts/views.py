@@ -10,6 +10,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, F, FloatField
 from django.db.models.functions import TruncWeek, TruncMonth
 import math
+from django.utils.encoding import smart_str
+import csv
 
 def index(request):
     return render(request, "workouts/index.html")
@@ -265,3 +267,59 @@ def dashboard(request):
         "best_bench": best_bench,
         "best_deadlift": best_deadlift,
     })
+
+@login_required
+def export_workouts_csv(request):
+    """
+    Exporta todos os workouts e respetivos sets em CSV.
+    """
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="ironlog_workouts.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Workout Date",
+        "Exercise",
+        "Repetitions",
+        "Weight (kg)",
+        "Volume (kg)",
+        "Notes"
+    ])
+
+    workouts = Workout.objects.filter(user=request.user).prefetch_related("sets", "sets__exercise")
+
+    for w in workouts:
+        for s in w.sets.all():
+            writer.writerow([
+                w.date.strftime("%Y-%m-%d"),
+                s.exercise.name,
+                s.repetitions or "",
+                s.weight or "",
+                round(s.volume, 2) if s.volume else "",
+                smart_str(w.notes or ""),
+            ])
+
+    return response
+
+
+@login_required
+def export_prs_csv(request):
+    """
+    Exporta todos os personal records (PRs) em CSV.
+    """
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="ironlog_prs.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(["Exercise", "Best Weight (kg)", "Date"])
+
+    prs = PersonalRecord.objects.filter(user=request.user).select_related("exercise")
+
+    for pr in prs:
+        writer.writerow([
+            pr.exercise.name,
+            pr.weight,
+            pr.date.strftime("%Y-%m-%d"),
+        ])
+
+    return response
