@@ -110,3 +110,44 @@ def delete_exercise(request, exercise_id):
     exercise = get_object_or_404(Exercise, id=exercise_id, user=request.user, is_custom=True)
     exercise.delete()
     return redirect("exercises")
+
+@login_required
+def workouts_list(request):
+    workouts = Workout.objects.filter(user=request.user).order_by("-date")
+    return render(request, "workouts/workouts.html", {"workouts": workouts})
+
+
+@login_required
+def add_workout(request):
+    if request.method == "POST":
+        form = WorkoutForm(request.POST)
+        if form.is_valid():
+            workout = form.save(commit=False)
+            workout.user = request.user
+            workout.save()
+            return redirect("workout_detail", workout_id=workout.id)
+    else:
+        form = WorkoutForm()
+    return render(request, "workouts/add_workout.html", {"form": form})
+
+
+@login_required
+def workout_detail(request, workout_id):
+    workout = get_object_or_404(Workout, id=workout_id, user=request.user)
+    sets = workout.sets.all().select_related("exercise")
+
+    if request.method == "POST":
+        form = WorkoutSetForm(request.POST)
+        if form.is_valid():
+            workout_set = form.save(commit=False)
+            workout_set.workout = workout
+            workout_set.save()
+            return redirect("workout_detail", workout_id=workout.id)
+    else:
+        form = WorkoutSetForm()
+
+    return render(request, "workouts/workout_detail.html", {
+        "workout": workout,
+        "sets": sets,
+        "form": form,
+    })
