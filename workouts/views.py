@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import User, Profile, Exercise, Workout, WorkoutSet
+from .models import User, Profile, Exercise, Workout, WorkoutSet, PersonalRecord
 from django.db import IntegrityError
 from .forms import ProfileForm, ExerciseForm, WorkoutForm, WorkoutSetForm
 from django.contrib.auth.decorators import login_required
@@ -166,3 +166,8 @@ def workout_detail(request, workout_id):
         "sets": sets,
         "form": form,
     })
+
+@login_required
+def personal_records(request):
+    prs = PersonalRecord.objects.filter(user=request.user).select_related("exercise").order_by("exercise__name")
+    return render(request, "workouts/personal_records.html", {"prs": prs})
