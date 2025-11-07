@@ -7,6 +7,8 @@ from .models import User, Profile, Exercise, Workout, WorkoutSet, PersonalRecord
 from django.db import IntegrityError
 from .forms import ProfileForm, ExerciseForm, WorkoutForm, WorkoutSetForm
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, F, FloatField
+from django.db.models.functions import TruncWeek, TruncMonth
 
 def index(request):
     return render(request, "workouts/index.html")
@@ -171,3 +173,38 @@ def workout_detail(request, workout_id):
 def personal_records(request):
     prs = PersonalRecord.objects.filter(user=request.user).select_related("exercise").order_by("exercise__name")
     return render(request, "workouts/personal_records.html", {"prs": prs})
+
+@login_required
+def dashboard(request):
+    """
+    Dashboard showing total training volume over time.
+    """
+
+    period = request.GET.get("period", "weekly")  # 'weekly' or 'monthly'
+
+    sets = WorkoutSet.objects.filter(workout__user=request.user)
+
+    if period == "monthly":
+        data = (
+            sets.annotate(period=TruncMonth("workout__date"))
+            .values("period")
+            .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
+            .order_by("period")
+        )
+    else:
+        data = (
+            sets.annotate(period=TruncWeek("workout__date"))
+            .values("period")
+            .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
+            .order_by("period")
+        )
+
+    labels = [d["period"].strftime("%b %d, %Y") for d in data]
+    volumes = [round(d["volume"] or 0, 1) for d in data]
+
+    context = {
+        "labels": labels,
+        "volumes": volumes,
+        "period": period,
+    }
+    return render(request, "workouts/dashboard.html", context)
