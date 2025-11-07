@@ -9,6 +9,7 @@ from .forms import ProfileForm, ExerciseForm, WorkoutForm, WorkoutSetForm
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, F, FloatField
 from django.db.models.functions import TruncWeek, TruncMonth
+import math
 
 def index(request):
     return render(request, "workouts/index.html")
@@ -178,13 +179,36 @@ def personal_records(request):
 def dashboard(request):
     period = request.GET.get("period", "weekly")
 
-    # todos os sets válidos deste user
+    user = request.user
+    profile = getattr(user, "profile", None)
+
+    # Calcular o melhor squat/bench/deadlift
+    prs = PersonalRecord.objects.filter(user=user).select_related("exercise")
+
+    best_squat = prs.filter(exercise__name__icontains="squat").order_by("-weight").first()
+    best_bench = prs.filter(exercise__name__icontains="bench").order_by("-weight").first()
+    best_deadlift = prs.filter(exercise__name__icontains="deadlift").order_by("-weight").first()
+
+    total = sum([
+        best_squat.weight if best_squat else 0,
+        best_bench.weight if best_bench else 0,
+        best_deadlift.weight if best_deadlift else 0
+    ])
+
+    # Calcular Wilks score
+    wilks = None
+    if profile and profile.weight:
+        bw = profile.weight
+        a, b, c, d, e, f = -216.0475144, 16.2606339, -0.002388645, -0.00113732, 7.01863e-06, -1.291e-08
+        coeff = 500 / (a + b * bw + c * bw**2 + d * bw**3 + e * bw**4 + f * bw**5)
+        wilks = round(coeff * total, 2)
+
+    # ----- restante da função (volume e PRs) -----
     sets = WorkoutSet.objects.filter(
-        workout__user=request.user,
+        workout__user=user,
         weight__isnull=False,
         repetitions__isnull=False,
     )
-
 
     if sets.exists():
         if period == "monthly":
@@ -212,16 +236,13 @@ def dashboard(request):
         .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
         .order_by("-volume")
     )
-
     exercise_labels = [row["exercise__name"] for row in exercise_data]
     exercise_volumes = [float(row["volume"] or 0) for row in exercise_data]
 
-    prs = PersonalRecord.objects.filter(user=request.user).select_related("exercise").order_by("date")
-
+    prs = prs.order_by("date")
     squat_data = [(pr.date.strftime("%b %d, %Y"), pr.weight) for pr in prs if "squat" in pr.exercise.name.lower()]
     bench_data = [(pr.date.strftime("%b %d, %Y"), pr.weight) for pr in prs if "bench" in pr.exercise.name.lower()]
     deadlift_data = [(pr.date.strftime("%b %d, %Y"), pr.weight) for pr in prs if "deadlift" in pr.exercise.name.lower()]
-
 
     pr_labels = sorted(list({d[0] for d in (squat_data + bench_data + deadlift_data)}))
     squat_weights = [next((w for (d, w) in squat_data if d == label), None) for label in pr_labels]
@@ -238,4 +259,9 @@ def dashboard(request):
         "squat_weights": squat_weights,
         "bench_weights": bench_weights,
         "deadlift_weights": deadlift_weights,
+        "total": round(total, 2),
+        "wilks": wilks,
+        "best_squat": best_squat,
+        "best_bench": best_bench,
+        "best_deadlift": best_deadlift,
     })

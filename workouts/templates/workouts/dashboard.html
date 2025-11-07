@@ -3,11 +3,39 @@
 {% block title %}Dashboard | IronLog{% endblock %}
 
 {% block body %}
-<div class="container mt-5" style="max-width: 900px;">
+<div class="container mt-5" style="max-width: 1000px;">
 
-  <!-- Título + filtros -->
+  <!-- 🧮 Summary Card -->
+  <div class="card shadow-sm p-4 mb-4">
+    <h3 class="text-center mb-4">🏋️ Performance Summary</h3>
+    <div class="row text-center">
+      <div class="col-md-3">
+        <h6 class="text-muted mb-1">Best Squat</h6>
+        <h4>{{ best_squat.weight|default:"—" }} kg</h4>
+      </div>
+      <div class="col-md-3">
+        <h6 class="text-muted mb-1">Best Bench</h6>
+        <h4>{{ best_bench.weight|default:"—" }} kg</h4>
+      </div>
+      <div class="col-md-3">
+        <h6 class="text-muted mb-1">Best Deadlift</h6>
+        <h4>{{ best_deadlift.weight|default:"—" }} kg</h4>
+      </div>
+      <div class="col-md-3 border-start">
+        <h6 class="text-muted mb-1">Total (SBD)</h6>
+        <h4>{{ total|default:"0" }} kg</h4>
+        {% if wilks %}
+          <small class="text-muted">Wilks: <strong>{{ wilks }}</strong></small>
+        {% else %}
+          <small class="text-muted">Wilks: —</small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 Title & Period Filter -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>📊 Training Volume</h2>
+    <h3>📈 Training Analytics</h3>
     <div>
       <a href="?period=weekly" class="btn btn-sm {% if period == 'weekly' %}btn-primary{% else %}btn-outline-primary{% endif %}">
         Weekly
@@ -18,22 +46,31 @@
     </div>
   </div>
 
-  <!-- Gráfico 1: Volume ao longo do tempo -->
+  <!-- Chart 1: Volume Over Time -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">Total Training Volume Over Time</h5>
     <canvas id="volumeChart" height="100"></canvas>
+    {% if not volumes %}
+      <p class="text-center text-muted mt-3 mb-0">No data yet. Log a workout 💪</p>
+    {% endif %}
   </div>
 
-  <!-- Gráfico 2: Volume por exercício -->
+  <!-- Chart 2: Volume by Exercise -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">Volume by Exercise</h5>
     <canvas id="exerciseChart" height="120"></canvas>
+    {% if not exercise_labels %}
+      <p class="text-center text-muted mt-3 mb-0">No exercise volume yet.</p>
+    {% endif %}
   </div>
 
-  <!-- Gráfico 3: PR Progression -->
+  <!-- Chart 3: PR Progression -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">🏆 PR Progression (Squat / Bench / Deadlift)</h5>
     <canvas id="prChart" height="120"></canvas>
+    {% if not pr_labels %}
+      <p class="text-center text-muted mt-3 mb-0">No PR data yet.</p>
+    {% endif %}
   </div>
 
 </div>
@@ -41,7 +78,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Dados JSON seguros -->
+<!-- Passar dados de forma segura -->
 {{ labels|json_script:"labels-data" }}
 {{ volumes|json_script:"volumes-data" }}
 {{ exercise_labels|json_script:"exercise-labels-data" }}
@@ -52,93 +89,137 @@
 {{ deadlift_weights|json_script:"deadlift-weights-data" }}
 
 <script>
-  const labels = JSON.parse(document.getElementById("labels-data").textContent);
-  const volumes = JSON.parse(document.getElementById("volumes-data").textContent);
-  const exLabels = JSON.parse(document.getElementById("exercise-labels-data").textContent);
-  const exVolumes = JSON.parse(document.getElementById("exercise-volumes-data").textContent);
-  const prLabels = JSON.parse(document.getElementById("pr-labels-data").textContent);
-  const squatWeights = JSON.parse(document.getElementById("squat-weights-data").textContent);
-  const benchWeights = JSON.parse(document.getElementById("bench-weights-data").textContent);
-  const deadliftWeights = JSON.parse(document.getElementById("deadlift-weights-data").textContent);
+  // Carregar dados do Django
+  const labels = JSON.parse(document.getElementById("labels-data").textContent || "[]");
+  const volumes = JSON.parse(document.getElementById("volumes-data").textContent || "[]");
+  const exLabels = JSON.parse(document.getElementById("exercise-labels-data").textContent || "[]");
+  const exVolumes = JSON.parse(document.getElementById("exercise-volumes-data").textContent || "[]");
+  const prLabels = JSON.parse(document.getElementById("pr-labels-data").textContent || "[]");
+  const squatWeights = JSON.parse(document.getElementById("squat-weights-data").textContent || "[]");
+  const benchWeights = JSON.parse(document.getElementById("bench-weights-data").textContent || "[]");
+  const deadliftWeights = JSON.parse(document.getElementById("deadlift-weights-data").textContent || "[]");
 
-  // Gráfico 1 - Volume ao longo do tempo
-  new Chart(document.getElementById("volumeChart"), {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "Training Volume (kg lifted)",
-        data: volumes,
-        borderColor: "rgba(54, 162, 235, 1)",
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        tension: 0.3,
-        fill: true
-      }]
-    }
-  });
-
-  // Gráfico 2 - Volume por exercício
-  new Chart(document.getElementById("exerciseChart"), {
-    type: "bar",
-    data: {
-      labels: exLabels,
-      datasets: [{
-        label: "Volume (kg)",
-        data: exVolumes,
-        backgroundColor: "rgba(75, 192, 192, 0.4)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-      }]
-    }
-  });
-
-  // Gráfico 3 - PR Progression
-  new Chart(document.getElementById("prChart"), {
-    type: "line",
-    data: {
-      labels: prLabels,
-      datasets: [
-        {
-          label: "Squat",
-          data: squatWeights,
-          borderColor: "rgba(255, 99, 132, 1)",
-          backgroundColor: "rgba(255, 99, 132, 0.2)",
+  // ---- Chart 1: Volume Over Time ----
+  if (labels.length > 0) {
+    new Chart(document.getElementById("volumeChart"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Training Volume (kg lifted)",
+          data: volumes,
+          borderColor: "rgba(54, 162, 235, 1)",
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          borderWidth: 2,
+          fill: true,
           tension: 0.3,
-          fill: false,
-        },
-        {
-          label: "Bench",
-          data: benchWeights,
-          borderColor: "rgba(255, 206, 86, 1)",
-          backgroundColor: "rgba(255, 206, 86, 0.2)",
-          tension: 0.3,
-          fill: false,
-        },
-        {
-          label: "Deadlift",
-          data: deadliftWeights,
-          borderColor: "rgba(75, 192, 192, 1)",
-          backgroundColor: "rgba(75, 192, 192, 0.2)",
-          tension: 0.3,
-          fill: false,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        title: {
-          display: true,
-          text: "Best Lift Progression Over Time"
-        }
+          pointRadius: 5,
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: "Weight (kg)" }
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "Volume (kg)" }
+          },
+          x: {
+            title: { display: true, text: "Week" }
+          }
         }
       }
-    }
-  });
+    });
+  }
+
+  // ---- Chart 2: Volume by Exercise ----
+  if (exLabels.length > 0) {
+    new Chart(document.getElementById("exerciseChart"), {
+      type: "bar",
+      data: {
+        labels: exLabels,
+        datasets: [{
+          label: "Volume (kg)",
+          data: exVolumes,
+          backgroundColor: "rgba(75, 192, 192, 0.4)",
+          borderColor: "rgba(75, 192, 192, 1)",
+          borderWidth: 1,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "Volume (kg)" }
+          },
+          x: {
+            title: { display: true, text: "Exercise" }
+          }
+        }
+      }
+    });
+  }
+
+  // ---- Chart 3: PR Progression ----
+  if (prLabels.length > 0) {
+    new Chart(document.getElementById("prChart"), {
+      type: "line",
+      data: {
+        labels: prLabels,
+        datasets: [
+          {
+            label: "Squat",
+            data: squatWeights,
+            borderColor: "rgba(255, 99, 132, 1)",
+            backgroundColor: "rgba(255, 99, 132, 0.2)",
+            tension: 0.3,
+            fill: false,
+          },
+          {
+            label: "Bench",
+            data: benchWeights,
+            borderColor: "rgba(255, 206, 86, 1)",
+            backgroundColor: "rgba(255, 206, 86, 0.2)",
+            tension: 0.3,
+            fill: false,
+          },
+          {
+            label: "Deadlift",
+            data: deadliftWeights,
+            borderColor: "rgba(75, 192, 192, 1)",
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            tension: 0.3,
+            fill: false,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: false,
+          },
+          legend: {
+            position: "bottom"
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "Weight (kg)" }
+          },
+          x: {
+            title: { display: true, text: "Date" }
+          }
+        }
+      }
+    });
+  }
 </script>
 {% endblock %}
