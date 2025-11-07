@@ -14,4 +14,6 @@ urlpatterns = [
     path("workouts/<int:workout_id>/", views.workout_detail, name="workout_detail"),
     path("prs", views.personal_records, name="personal_records"),
     path("dashboard", views.dashboard, name="dashboard"),
+    path("export/workouts", views.export_workouts_csv, name="export_workouts_csv"),
+    path("export/prs", views.export_prs_csv, name="export_prs_csv"),
 ]
