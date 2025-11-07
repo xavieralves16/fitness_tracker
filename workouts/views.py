@@ -3,9 +3,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import User, Profile, Exercise
+from .models import User, Profile, Exercise, Workout, WorkoutSet
 from django.db import IntegrityError
-from .forms import ProfileForm, ExerciseForm
+from .forms import ProfileForm, ExerciseForm, WorkoutForm, WorkoutSetForm
 from django.contrib.auth.decorators import login_required
 
 def index(request):
