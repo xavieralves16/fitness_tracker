@@ -185,7 +185,7 @@ def dashboard(request):
         repetitions__isnull=False,
     )
 
-    # ----- volume por período (gráfico de cima) -----
+
     if sets.exists():
         if period == "monthly":
             data = (
@@ -194,7 +194,7 @@ def dashboard(request):
                 .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
                 .order_by("period")
             )
-        else:  # weekly
+        else:
             data = (
                 sets.annotate(period=TruncWeek("workout__date"))
                 .values("period")
@@ -205,10 +205,8 @@ def dashboard(request):
         labels = [d["period"].strftime("%b %d, %Y") for d in data if d["period"]]
         volumes = [float(d["volume"] or 0) for d in data]
     else:
-        labels = []
-        volumes = []
+        labels, volumes = [], []
 
-    # ----- volume por exercício (novo gráfico) -----
     exercise_data = (
         sets.values("exercise__name")
         .annotate(volume=Sum(F("weight") * F("repetitions"), output_field=FloatField()))
@@ -218,10 +216,26 @@ def dashboard(request):
     exercise_labels = [row["exercise__name"] for row in exercise_data]
     exercise_volumes = [float(row["volume"] or 0) for row in exercise_data]
 
+    prs = PersonalRecord.objects.filter(user=request.user).select_related("exercise").order_by("date")
+
+    squat_data = [(pr.date.strftime("%b %d, %Y"), pr.weight) for pr in prs if "squat" in pr.exercise.name.lower()]
+    bench_data = [(pr.date.strftime("%b %d, %Y"), pr.weight) for pr in prs if "bench" in pr.exercise.name.lower()]
+    deadlift_data = [(pr.date.strftime("%b %d, %Y"), pr.weight) for pr in prs if "deadlift" in pr.exercise.name.lower()]
+
+
+    pr_labels = sorted(list({d[0] for d in (squat_data + bench_data + deadlift_data)}))
+    squat_weights = [next((w for (d, w) in squat_data if d == label), None) for label in pr_labels]
+    bench_weights = [next((w for (d, w) in bench_data if d == label), None) for label in pr_labels]
+    deadlift_weights = [next((w for (d, w) in deadlift_data if d == label), None) for label in pr_labels]
+
     return render(request, "workouts/dashboard.html", {
         "labels": labels,
         "volumes": volumes,
         "period": period,
         "exercise_labels": exercise_labels,
         "exercise_volumes": exercise_volumes,
+        "pr_labels": pr_labels,
+        "squat_weights": squat_weights,
+        "bench_weights": bench_weights,
+        "deadlift_weights": deadlift_weights,
     })

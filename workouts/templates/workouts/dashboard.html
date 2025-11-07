@@ -18,22 +18,22 @@
     </div>
   </div>
 
-  <!-- Card do gráfico de volume ao longo do tempo -->
+  <!-- Gráfico 1: Volume ao longo do tempo -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">Total Training Volume Over Time</h5>
     <canvas id="volumeChart" height="100"></canvas>
-    {% if not volumes %}
-      <p class="text-center text-muted mt-3 mb-0">No data yet. Log a workout 💪</p>
-    {% endif %}
   </div>
 
-  <!-- Card do gráfico por exercício -->
+  <!-- Gráfico 2: Volume por exercício -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">Volume by Exercise</h5>
     <canvas id="exerciseChart" height="120"></canvas>
-    {% if not exercise_labels %}
-      <p class="text-center text-muted mt-3 mb-0">No exercise volume yet.</p>
-    {% endif %}
+  </div>
+
+  <!-- Gráfico 3: PR Progression -->
+  <div class="card shadow-sm p-4 mb-4">
+    <h5 class="text-center mb-3">🏆 PR Progression (Squat / Bench / Deadlift)</h5>
+    <canvas id="prChart" height="120"></canvas>
   </div>
 
 </div>
@@ -41,19 +41,28 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Dados seguros via json_script -->
+<!-- Dados JSON seguros -->
 {{ labels|json_script:"labels-data" }}
 {{ volumes|json_script:"volumes-data" }}
 {{ exercise_labels|json_script:"exercise-labels-data" }}
 {{ exercise_volumes|json_script:"exercise-volumes-data" }}
+{{ pr_labels|json_script:"pr-labels-data" }}
+{{ squat_weights|json_script:"squat-weights-data" }}
+{{ bench_weights|json_script:"bench-weights-data" }}
+{{ deadlift_weights|json_script:"deadlift-weights-data" }}
 
 <script>
-  // dados do gráfico 1 (volume no tempo)
   const labels = JSON.parse(document.getElementById("labels-data").textContent);
   const volumes = JSON.parse(document.getElementById("volumes-data").textContent);
+  const exLabels = JSON.parse(document.getElementById("exercise-labels-data").textContent);
+  const exVolumes = JSON.parse(document.getElementById("exercise-volumes-data").textContent);
+  const prLabels = JSON.parse(document.getElementById("pr-labels-data").textContent);
+  const squatWeights = JSON.parse(document.getElementById("squat-weights-data").textContent);
+  const benchWeights = JSON.parse(document.getElementById("bench-weights-data").textContent);
+  const deadliftWeights = JSON.parse(document.getElementById("deadlift-weights-data").textContent);
 
-  const ctx1 = document.getElementById("volumeChart").getContext("2d");
-  new Chart(ctx1, {
+  // Gráfico 1 - Volume ao longo do tempo
+  new Chart(document.getElementById("volumeChart"), {
     type: "line",
     data: {
       labels: labels,
@@ -62,26 +71,14 @@
         data: volumes,
         borderColor: "rgba(54, 162, 235, 1)",
         backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderWidth: 2,
-        fill: true,
         tension: 0.3,
-        pointRadius: 5,
+        fill: true
       }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true, title: { display: true, text: "kg" } }
-      }
     }
   });
 
-  // dados do gráfico 2 (volume por exercício)
-  const exLabels = JSON.parse(document.getElementById("exercise-labels-data").textContent);
-  const exVolumes = JSON.parse(document.getElementById("exercise-volumes-data").textContent);
-
-  const ctx2 = document.getElementById("exerciseChart").getContext("2d");
-  new Chart(ctx2, {
+  // Gráfico 2 - Volume por exercício
+  new Chart(document.getElementById("exerciseChart"), {
     type: "bar",
     data: {
       labels: exLabels,
@@ -92,11 +89,54 @@
         borderColor: "rgba(75, 192, 192, 1)",
         borderWidth: 1,
       }]
+    }
+  });
+
+  // Gráfico 3 - PR Progression
+  new Chart(document.getElementById("prChart"), {
+    type: "line",
+    data: {
+      labels: prLabels,
+      datasets: [
+        {
+          label: "Squat",
+          data: squatWeights,
+          borderColor: "rgba(255, 99, 132, 1)",
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: "Bench",
+          data: benchWeights,
+          borderColor: "rgba(255, 206, 86, 1)",
+          backgroundColor: "rgba(255, 206, 86, 0.2)",
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: "Deadlift",
+          data: deadliftWeights,
+          borderColor: "rgba(75, 192, 192, 1)",
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          tension: 0.3,
+          fill: false,
+        }
+      ]
     },
     options: {
       responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: "Best Lift Progression Over Time"
+        }
+      },
       scales: {
-        y: { beginAtZero: true }
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: "Weight (kg)" }
+        }
       }
     }
   });
