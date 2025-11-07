@@ -1,0 +1,72 @@
+{% extends "workouts/layout.html" %}
+{% block title %}Dashboard | IronLog{% endblock %}
+{% load static %}
+
+{% block body %}
+<div class="container mt-5" style="max-width: 900px;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>📊 Training Volume</h2>
+    <div>
+      <a href="?period=weekly" class="btn btn-sm {% if period == 'weekly' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Weekly
+      </a>
+      <a href="?period=monthly" class="btn btn-sm {% if period == 'monthly' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Monthly
+      </a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm p-4">
+    <canvas id="volumeChart" height="100"></canvas>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('volumeChart').getContext('2d');
+  const volumeChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: {{ labels|safe }},
+      datasets: [{
+        label: 'Training Volume (kg lifted)',
+        data: {{ volumes|safe }},
+        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 5,
+        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true },
+        title: {
+          display: true,
+          text: 'Total Training Volume Over Time',
+          font: { size: 18 }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Volume (kg)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Period'
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}
+
