@@ -87,6 +87,18 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- Pass data safely -->
+{{ labels|json_script:"labels-data" }}
+{{ volumes|json_script:"volumes-data" }}
+{{ exercise_labels|json_script:"exercise-labels-data" }}
+{{ exercise_volumes|json_script:"exercise-volumes-data" }}
+{{ pr_labels|json_script:"pr-labels-data" }}
+{{ squat_weights|json_script:"squat-weights-data" }}
+{{ bench_weights|json_script:"bench-weights-data" }}
+{{ deadlift_weights|json_script:"deadlift-weights-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <!-- Safe JSON Data -->
 {{ labels|json_script:"labels-data" }}
 {{ volumes|json_script:"volumes-data" }}
@@ -98,18 +110,21 @@
 {{ deadlift_weights|json_script:"deadlift-weights-data" }}
 
 <script>
-  // Load data
-  const labels = JSON.parse(document.getElementById("labels-data").textContent || "[]");
-  const volumes = JSON.parse(document.getElementById("volumes-data").textContent || "[]");
-  const exLabels = JSON.parse(document.getElementById("exercise-labels-data").textContent || "[]");
-  const exVolumes = JSON.parse(document.getElementById("exercise-volumes-data").textContent || "[]");
-  const prLabels = JSON.parse(document.getElementById("pr-labels-data").textContent || "[]");
-  const squatWeights = JSON.parse(document.getElementById("squat-weights-data").textContent || "[]");
-  const benchWeights = JSON.parse(document.getElementById("bench-weights-data").textContent || "[]");
-  const deadliftWeights = JSON.parse(document.getElementById("deadlift-weights-data").textContent || "[]");
+  let charts = {};
 
-  // 🔧 Chart Options Generator (with kg units)
+  function getChartColors() {
+    const isLight = document.body.classList.contains("theme-light");
+    return {
+      bgColor: isLight ? "#ffffff" : "#202020",
+      gridColor: isLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)",
+      textColor: isLight ? "#222" : "#ccc",
+      tooltipBg: isLight ? "rgba(0,0,0,0.8)" : "rgba(255,255,255,0.1)",
+      tooltipText: "#fff"
+    };
+  }
+
   function chartOptions(yLabel, dataArray, aspect = 2.2) {
+    const colors = getChartColors();
     const maxValue = Math.max(...dataArray, 100);
     const minValue = Math.min(...dataArray, 0);
 
@@ -117,18 +132,17 @@
       responsive: true,
       maintainAspectRatio: true,
       aspectRatio: aspect,
+      backgroundColor: colors.bgColor,
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "rgba(0,0,0,0.85)",
-          titleColor: "#fff",
-          bodyColor: "#fff",
+          backgroundColor: colors.tooltipBg,
+          titleColor: colors.tooltipText,
+          bodyColor: colors.tooltipText,
           borderColor: "#b91c1c",
           borderWidth: 1,
           callbacks: {
-            label: function(context) {
-              return `${context.parsed.y.toLocaleString()} kg`;
-            }
+            label: (context) => `${context.parsed.y.toLocaleString()} kg`
           }
         }
       },
@@ -138,111 +152,137 @@
           suggestedMin: minValue * 0.95,
           suggestedMax: maxValue * 1.15,
           ticks: {
-            color: "#ccc",
-            callback: function(value) {
-              return value.toLocaleString() + " kg";
-            }
+            color: colors.textColor,
+            callback: (value) => value.toLocaleString() + " kg"
           },
-          grid: {
-            color: "rgba(255,255,255,0.1)"
-          },
-          title: { display: true, text: yLabel, color: "#aaa" }
+          grid: { color: colors.gridColor },
+          title: { display: true, text: yLabel, color: colors.textColor }
         },
         x: {
-          ticks: { color: "#ccc" },
-          grid: { color: "rgba(255,255,255,0.05)" }
+          ticks: { color: colors.textColor },
+          grid: { color: colors.gridColor }
         }
       }
     };
   }
 
-  // ---- Chart 1: Volume Over Time ----
-  if (labels.length > 0) {
-    new Chart(document.getElementById("volumeChart"), {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Training Volume (kg lifted)",
-          data: volumes,
-          borderColor: "rgba(54, 162, 235, 1)",
-          backgroundColor: "rgba(54, 162, 235, 0.2)",
-          borderWidth: 2,
-          fill: true,
-          tension: 0.3,
-          pointRadius: 5,
-          pointStyle: 'rectRounded',
-          pointBackgroundColor: 'rgba(185, 28, 28, 1)'
-        }]
-      },
-      options: chartOptions("Volume (kg)", volumes, 2.5)
+  function renderCharts() {
+    // Clean previous
+    Object.values(charts).forEach(c => c.destroy());
+    charts = {};
+
+    const labels = JSON.parse(document.getElementById("labels-data").textContent || "[]");
+    const volumes = JSON.parse(document.getElementById("volumes-data").textContent || "[]");
+    const exLabels = JSON.parse(document.getElementById("exercise-labels-data").textContent || "[]");
+    const exVolumes = JSON.parse(document.getElementById("exercise-volumes-data").textContent || "[]");
+    const prLabels = JSON.parse(document.getElementById("pr-labels-data").textContent || "[]");
+    const squatWeights = JSON.parse(document.getElementById("squat-weights-data").textContent || "[]");
+    const benchWeights = JSON.parse(document.getElementById("bench-weights-data").textContent || "[]");
+    const deadliftWeights = JSON.parse(document.getElementById("deadlift-weights-data").textContent || "[]");
+
+    const ctx1 = document.getElementById("volumeChart");
+    const ctx2 = document.getElementById("exerciseChart");
+    const ctx3 = document.getElementById("prChart");
+
+    const colors = getChartColors();
+    [ctx1, ctx2, ctx3].forEach(ctx => {
+      if (ctx) ctx.style.backgroundColor = colors.bgColor;
     });
+
+    // Chart 1
+    if (labels.length > 0) {
+      charts.volume = new Chart(ctx1, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Training Volume (kg lifted)",
+            data: volumes,
+            borderColor: "rgba(54, 162, 235, 1)",
+            backgroundColor: "rgba(54, 162, 235, 0.2)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 5,
+            pointBackgroundColor: "#b91c1c"
+          }]
+        },
+        options: chartOptions("Volume (kg)", volumes, 2.5)
+      });
+    }
+
+    // Chart 2
+    if (exLabels.length > 0) {
+      charts.exercise = new Chart(ctx2, {
+        type: "bar",
+        data: {
+          labels: exLabels,
+          datasets: [{
+            label: "Volume (kg)",
+            data: exVolumes,
+            backgroundColor: "rgba(185, 28, 28, 0.5)",
+            borderColor: "rgba(185, 28, 28, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: chartOptions("Volume (kg)", exVolumes, 2)
+      });
+    }
+
+    // Chart 3
+    if (prLabels.length > 0) {
+      const allWeights = [...squatWeights, ...benchWeights, ...deadliftWeights];
+      charts.pr = new Chart(ctx3, {
+        type: "line",
+        data: {
+          labels: prLabels,
+          datasets: [
+            {
+              label: "Squat",
+              data: squatWeights,
+              borderColor: "rgba(255, 99, 132, 1)",
+              backgroundColor: "rgba(255, 99, 132, 0.2)",
+              fill: false,
+              tension: 0.3,
+              pointBackgroundColor: "rgba(255, 99, 132, 1)"
+            },
+            {
+              label: "Bench",
+              data: benchWeights,
+              borderColor: "rgba(255, 206, 86, 1)",
+              backgroundColor: "rgba(255, 206, 86, 0.2)",
+              fill: false,
+              tension: 0.3,
+              pointBackgroundColor: "rgba(255, 206, 86, 1)"
+            },
+            {
+              label: "Deadlift",
+              data: deadliftWeights,
+              borderColor: "rgba(75, 192, 192, 1)",
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              fill: false,
+              tension: 0.3,
+              pointBackgroundColor: "rgba(75, 192, 192, 1)"
+            }
+          ]
+        },
+        options: {
+          ...chartOptions("Weight (kg)", allWeights, 2.5),
+          plugins: { legend: { position: "bottom", labels: { color: getChartColors().textColor } } }
+        }
+      });
+    }
   }
 
-  // ---- Chart 2: Volume by Exercise ----
-  if (exLabels.length > 0) {
-    new Chart(document.getElementById("exerciseChart"), {
-      type: "bar",
-      data: {
-        labels: exLabels,
-        datasets: [{
-          label: "Volume (kg)",
-          data: exVolumes,
-          backgroundColor: "rgba(185, 28, 28, 0.4)",
-          borderColor: "rgba(185, 28, 28, 1)",
-          borderWidth: 1,
-        }]
-      },
-      options: chartOptions("Volume (kg)", exVolumes, 2)
-    });
-  }
+  // Render charts initially
+  renderCharts();
 
-  // ---- Chart 3: PR Progression ----
-  if (prLabels.length > 0) {
-    const allWeights = [...squatWeights, ...benchWeights, ...deadliftWeights];
-    new Chart(document.getElementById("prChart"), {
-      type: "line",
-      data: {
-        labels: prLabels,
-        datasets: [
-          {
-            label: "Squat",
-            data: squatWeights,
-            borderColor: "rgba(255, 99, 132, 1)",
-            backgroundColor: "rgba(255, 99, 132, 0.2)",
-            tension: 0.3,
-            fill: false,
-            pointRadius: 5,
-            pointBackgroundColor: "rgba(255, 99, 132, 1)"
-          },
-          {
-            label: "Bench",
-            data: benchWeights,
-            borderColor: "rgba(255, 206, 86, 1)",
-            backgroundColor: "rgba(255, 206, 86, 0.2)",
-            tension: 0.3,
-            fill: false,
-            pointRadius: 5,
-            pointBackgroundColor: "rgba(255, 206, 86, 1)"
-          },
-          {
-            label: "Deadlift",
-            data: deadliftWeights,
-            borderColor: "rgba(75, 192, 192, 1)",
-            backgroundColor: "rgba(75, 192, 192, 0.2)",
-            tension: 0.3,
-            fill: false,
-            pointRadius: 5,
-            pointBackgroundColor: "rgba(75, 192, 192, 1)"
-          }
-        ]
-      },
-      options: {
-        ...chartOptions("Weight (kg)", allWeights, 2.5),
-        plugins: { legend: { position: "bottom", labels: { color: "#ccc" } } }
-      }
+  // Rerender on theme toggle
+  const themeBtn = document.querySelector(".btn-outline-iron");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      setTimeout(renderCharts, 200);
     });
   }
 </script>
-{% endblock %}
 
+{% endblock %}
