@@ -55,7 +55,7 @@
     </a>
   </div>
 
-  <!-- Chart 1: Volume Over Time -->
+  <!-- Chart 1 -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">Total Training Volume Over Time</h5>
     <canvas id="volumeChart"></canvas>
@@ -64,7 +64,7 @@
     {% endif %}
   </div>
 
-  <!-- Chart 2: Volume by Exercise -->
+  <!-- Chart 2 -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">Volume by Exercise</h5>
     <canvas id="exerciseChart"></canvas>
@@ -73,7 +73,7 @@
     {% endif %}
   </div>
 
-  <!-- Chart 3: PR Progression -->
+  <!-- Chart 3 -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">🏆 PR Progression (Squat / Bench / Deadlift)</h5>
     <canvas id="prChart"></canvas>
@@ -87,19 +87,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Pass data safely -->
-{{ labels|json_script:"labels-data" }}
-{{ volumes|json_script:"volumes-data" }}
-{{ exercise_labels|json_script:"exercise-labels-data" }}
-{{ exercise_volumes|json_script:"exercise-volumes-data" }}
-{{ pr_labels|json_script:"pr-labels-data" }}
-{{ squat_weights|json_script:"squat-weights-data" }}
-{{ bench_weights|json_script:"bench-weights-data" }}
-{{ deadlift_weights|json_script:"deadlift-weights-data" }}
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Safe JSON Data -->
+<!-- Safe JSON data -->
 {{ labels|json_script:"labels-data" }}
 {{ volumes|json_script:"volumes-data" }}
 {{ exercise_labels|json_script:"exercise-labels-data" }}
@@ -110,6 +98,13 @@
 {{ deadlift_weights|json_script:"deadlift-weights-data" }}
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Aplica tema salvo antes de criar os gráficos
+  const savedTheme = localStorage.getItem("ironTheme");
+  if (savedTheme === "light") {
+    document.body.classList.add("theme-light");
+  }
+
   let charts = {};
 
   function getChartColors() {
@@ -167,7 +162,7 @@
   }
 
   function renderCharts() {
-    // Clean previous
+    // Destroi gráficos anteriores
     Object.values(charts).forEach(c => c.destroy());
     charts = {};
 
@@ -194,7 +189,7 @@
       charts.volume = new Chart(ctx1, {
         type: "line",
         data: {
-          labels: labels,
+          labels,
           datasets: [{
             label: "Training Volume (kg lifted)",
             data: volumes,
@@ -273,16 +268,17 @@
     }
   }
 
-  // Render charts initially
-  renderCharts();
+  // Render inicial (após aplicar tema)
+  setTimeout(renderCharts, 100);
 
-  // Rerender on theme toggle
+  // Rerender ao mudar tema
   const themeBtn = document.querySelector(".btn-outline-iron");
   if (themeBtn) {
     themeBtn.addEventListener("click", () => {
       setTimeout(renderCharts, 200);
     });
   }
+});
 </script>
 
 {% endblock %}
