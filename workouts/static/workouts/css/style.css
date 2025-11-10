@@ -287,35 +287,35 @@ body.theme-light .card h6 {
 }
 
 
-/* =========================================================
-   WORKOUTS PAGE ADAPTATION
-   ========================================================= */
-
-/* Dark Mode (default) */
 .workout-card,
-.list-group-item,
-.card-body {
+.list-group-item {
   background-color: var(--iron-surface-dark) !important;
   color: var(--iron-text-dark) !important;
   border: 1px solid #333 !important;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.workout-card:hover,
-.list-group-item:hover {
-  background-color: #2a2a2a !important;
+
+.workout-card *,
+.list-group-item * {
+  color: var(--iron-text-dark) !important;
 }
 
-/* Light Mode */
+
 body.theme-light .workout-card,
-body.theme-light .list-group-item,
-body.theme-light .card-body {
+body.theme-light .list-group-item {
   background-color: var(--iron-surface-light) !important;
   color: var(--iron-text-light) !important;
   border: 1px solid #ddd !important;
 }
 
-body.theme-light .workout-card:hover,
-body.theme-light .list-group-item:hover {
-  background-color: #f8f8f8 !important;
+
+body.theme-light .workout-card *,
+body.theme-light .list-group-item * {
+  color: var(--iron-text-light) !important;
+}
+
+
+body.theme-light .text-muted,
+body.theme-light .list-group-item .text-muted {
+  color: #555 !important;
 }
