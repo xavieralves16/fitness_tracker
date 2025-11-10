@@ -319,3 +319,97 @@ body.theme-light .text-muted,
 body.theme-light .list-group-item .text-muted {
   color: #555 !important;
 }
+
+
+.new-workout-btn {
+  border: 2px solid var(--iron-red);
+  color: var(--iron-text-dark) !important; 
+  font-weight: bold;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.new-workout-btn:hover {
+  background: var(--iron-red);
+  color: #fff !important;
+}
+
+
+body.theme-light .new-workout-btn {
+  border-color: var(--iron-red);
+  color: var(--iron-text-light) !important; 
+}
+
+body.theme-light .new-workout-btn:hover {
+  background: var(--iron-red);
+  color: #fff !important;
+}
+
+
+/* Dark mode (default) */
+textarea, input, select {
+  background-color: #121212 !important;
+  color: var(--iron-text-dark) !important;
+  border: 1px solid #333 !important;
+}
+
+textarea::placeholder, 
+input::placeholder {
+  color: #aaa !important;
+}
+
+/* Light mode */
+body.theme-light textarea,
+body.theme-light input,
+body.theme-light select {
+  background-color: #fff !important;
+  color: var(--iron-text-light) !important;
+  border: 1px solid #ccc !important;
+}
+
+body.theme-light textarea::placeholder,
+body.theme-light input::placeholder {
+  color: #888 !important;
+}
+
+/* 🌑 Dark mode (default) */
+.table {
+  background-color: var(--iron-surface-dark) !important;
+  color: var(--iron-text-dark) !important;
+  border-color: #333 !important;
+}
+
+.table thead th {
+  background-color: #181818 !important; /* remove fundo branco */
+  color: var(--iron-text-dark) !important;
+  border-bottom: 2px solid var(--iron-red) !important;
+}
+
+.table tbody tr {
+  background-color: var(--iron-surface-dark) !important;
+}
+
+.table tbody tr:hover {
+  background-color: #2a2a2a !important;
+}
+
+/* ☀️ Light mode */
+body.theme-light .table {
+  background-color: var(--iron-surface-light) !important;
+  color: var(--iron-text-light) !important;
+  border-color: #ddd !important;
+}
+
+body.theme-light .table thead th {
+  background-color: #f2f2f2 !important;
+  color: var(--iron-text-light) !important;
+  border-bottom: 2px solid var(--iron-red) !important;
+}
+
+body.theme-light .table tbody tr {
+  background-color: #fff !important;
+}
+
+body.theme-light .table tbody tr:hover {
+  background-color: #f5f5f5 !important;
+}
