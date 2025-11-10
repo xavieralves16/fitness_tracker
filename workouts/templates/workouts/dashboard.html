@@ -53,12 +53,12 @@
     <a href="{% url 'export_prs_csv' %}" class="btn btn-outline-secondary btn-sm">
         🏆 Export PRs CSV
     </a>
-    </div>
+  </div>
 
   <!-- Chart 1: Volume Over Time -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">Total Training Volume Over Time</h5>
-    <canvas id="volumeChart" height="100"></canvas>
+    <canvas id="volumeChart"></canvas>
     {% if not volumes %}
       <p class="text-center text-muted mt-3 mb-0">No data yet. Log a workout 💪</p>
     {% endif %}
@@ -67,7 +67,7 @@
   <!-- Chart 2: Volume by Exercise -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">Volume by Exercise</h5>
-    <canvas id="exerciseChart" height="120"></canvas>
+    <canvas id="exerciseChart"></canvas>
     {% if not exercise_labels %}
       <p class="text-center text-muted mt-3 mb-0">No exercise volume yet.</p>
     {% endif %}
@@ -76,7 +76,7 @@
   <!-- Chart 3: PR Progression -->
   <div class="card shadow-sm p-4 mb-4">
     <h5 class="text-center mb-3">🏆 PR Progression (Squat / Bench / Deadlift)</h5>
-    <canvas id="prChart" height="120"></canvas>
+    <canvas id="prChart"></canvas>
     {% if not pr_labels %}
       <p class="text-center text-muted mt-3 mb-0">No PR data yet.</p>
     {% endif %}
@@ -87,7 +87,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Passar dados de forma segura -->
+<!-- Safe JSON Data -->
 {{ labels|json_script:"labels-data" }}
 {{ volumes|json_script:"volumes-data" }}
 {{ exercise_labels|json_script:"exercise-labels-data" }}
@@ -98,7 +98,7 @@
 {{ deadlift_weights|json_script:"deadlift-weights-data" }}
 
 <script>
-  // Carregar dados do Django
+  // Load data
   const labels = JSON.parse(document.getElementById("labels-data").textContent || "[]");
   const volumes = JSON.parse(document.getElementById("volumes-data").textContent || "[]");
   const exLabels = JSON.parse(document.getElementById("exercise-labels-data").textContent || "[]");
@@ -107,6 +107,54 @@
   const squatWeights = JSON.parse(document.getElementById("squat-weights-data").textContent || "[]");
   const benchWeights = JSON.parse(document.getElementById("bench-weights-data").textContent || "[]");
   const deadliftWeights = JSON.parse(document.getElementById("deadlift-weights-data").textContent || "[]");
+
+  // 🔧 Chart Options Generator (with kg units)
+  function chartOptions(yLabel, dataArray, aspect = 2.2) {
+    const maxValue = Math.max(...dataArray, 100);
+    const minValue = Math.min(...dataArray, 0);
+
+    return {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: aspect,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(0,0,0,0.85)",
+          titleColor: "#fff",
+          bodyColor: "#fff",
+          borderColor: "#b91c1c",
+          borderWidth: 1,
+          callbacks: {
+            label: function(context) {
+              return `${context.parsed.y.toLocaleString()} kg`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          suggestedMin: minValue * 0.95,
+          suggestedMax: maxValue * 1.15,
+          ticks: {
+            color: "#ccc",
+            callback: function(value) {
+              return value.toLocaleString() + " kg";
+            }
+          },
+          grid: {
+            color: "rgba(255,255,255,0.1)"
+          },
+          title: { display: true, text: yLabel, color: "#aaa" }
+        },
+        x: {
+          ticks: { color: "#ccc" },
+          grid: { color: "rgba(255,255,255,0.05)" }
+        }
+      }
+    };
+  }
 
   // ---- Chart 1: Volume Over Time ----
   if (labels.length > 0) {
@@ -123,23 +171,11 @@
           fill: true,
           tension: 0.3,
           pointRadius: 5,
+          pointStyle: 'rectRounded',
+          pointBackgroundColor: 'rgba(185, 28, 28, 1)'
         }]
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: "Volume (kg)" }
-          },
-          x: {
-            title: { display: true, text: "Week" }
-          }
-        }
-      }
+      options: chartOptions("Volume (kg)", volumes, 2.5)
     });
   }
 
@@ -152,31 +188,18 @@
         datasets: [{
           label: "Volume (kg)",
           data: exVolumes,
-          backgroundColor: "rgba(75, 192, 192, 0.4)",
-          borderColor: "rgba(75, 192, 192, 1)",
+          backgroundColor: "rgba(185, 28, 28, 0.4)",
+          borderColor: "rgba(185, 28, 28, 1)",
           borderWidth: 1,
         }]
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: "Volume (kg)" }
-          },
-          x: {
-            title: { display: true, text: "Exercise" }
-          }
-        }
-      }
+      options: chartOptions("Volume (kg)", exVolumes, 2)
     });
   }
 
   // ---- Chart 3: PR Progression ----
   if (prLabels.length > 0) {
+    const allWeights = [...squatWeights, ...benchWeights, ...deadliftWeights];
     new Chart(document.getElementById("prChart"), {
       type: "line",
       data: {
@@ -189,6 +212,8 @@
             backgroundColor: "rgba(255, 99, 132, 0.2)",
             tension: 0.3,
             fill: false,
+            pointRadius: 5,
+            pointBackgroundColor: "rgba(255, 99, 132, 1)"
           },
           {
             label: "Bench",
@@ -197,6 +222,8 @@
             backgroundColor: "rgba(255, 206, 86, 0.2)",
             tension: 0.3,
             fill: false,
+            pointRadius: 5,
+            pointBackgroundColor: "rgba(255, 206, 86, 1)"
           },
           {
             label: "Deadlift",
@@ -205,30 +232,17 @@
             backgroundColor: "rgba(75, 192, 192, 0.2)",
             tension: 0.3,
             fill: false,
+            pointRadius: 5,
+            pointBackgroundColor: "rgba(75, 192, 192, 1)"
           }
         ]
       },
       options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: false,
-          },
-          legend: {
-            position: "bottom"
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: "Weight (kg)" }
-          },
-          x: {
-            title: { display: true, text: "Date" }
-          }
-        }
+        ...chartOptions("Weight (kg)", allWeights, 2.5),
+        plugins: { legend: { position: "bottom", labels: { color: "#ccc" } } }
       }
     });
   }
 </script>
 {% endblock %}
+
